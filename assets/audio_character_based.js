@@ -20,6 +20,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update button text on load
         analyzeBtn.textContent = fetchTranslation('analyzeButton', currentLanguage);
     }
+
+    // Reset Analysis if text or language changes
+    const sourceText = document.getElementById('source-text');
+    const slSelect = document.getElementById('sl');
+    
+    const resetAnalysis = () => {
+         const settingsArea = document.getElementById('character-settings-area');
+         const generateBtn = document.getElementById('generate-button');
+         
+         if (settingsArea) settingsArea.classList.add('hide');
+         if (generateBtn) generateBtn.classList.add('hide');
+         
+         isCharacterModeActive = false;
+         parsedSentences = [];
+         characterVoiceMap.clear();
+         uniqueCharactersList = [];
+    };
+
+    if (sourceText) sourceText.addEventListener('input', resetAnalysis);
+    if (slSelect) slSelect.addEventListener('change', resetAnalysis);
 });
 
 /**
@@ -39,6 +59,9 @@ function getVoiceShortName(voice) {
  * Parses the source text, identifies characters, assigns default voices, and sets up the UI.
  */
 function handleAnalyzeCharacters() {
+    // Reset generation button visibility at the start of analysis
+    document.getElementById('generate-button')?.classList.add('hide');
+
     const sourceText = document.getElementById('source-text').value;
     if (!sourceText || sourceText.trim() === "") {
         alert(fetchTranslation('alertEnterSourceText', currentLanguage));
@@ -95,18 +118,23 @@ function handleAnalyzeCharacters() {
     }
 
     // 1. Assign Voices (Logic)
-    assignVoicesToCharacters(uniqueCharactersList);
+    const success = assignVoicesToCharacters(uniqueCharactersList);
 
-    // 2. Render UI (View)
-    renderCharacterMappingUI(uniqueCharactersList);
-    
-    isCharacterModeActive = true;
+    if (success) {
+        // 2. Render UI (View)
+        renderCharacterMappingUI(uniqueCharactersList);
+        
+        // Show Generate Button ONLY after successful analysis and mapping
+        document.getElementById('generate-button')?.classList.remove('hide');
+        isCharacterModeActive = true;
+    }
 }
 
 /**
  * Logic: Assigns a voice to each character automatically based on available voices.
  * Populates the characterVoiceMap.
  * @param {string[]} characters List of character names
+ * @returns {boolean} True if assignment was successful
  */
 function assignVoicesToCharacters(characters) {
     characterVoiceMap.clear();
@@ -132,34 +160,29 @@ function assignVoicesToCharacters(characters) {
     if (availableVoices.length === 0) {
         console.error("Critical: No voices available at all.");
         alert("Error: No voices loaded. Please check your internet connection or reload the page.");
-        return;
+        return false;
     }
 
-    // Determine Narrator Voice from the main dropdown (sl-voice)
-    const mainVoiceSelect = document.getElementById('sl-voice');
+    // Automatically select a Narrator Voice (Default to the first one available)
+    // No longer relying on #sl-voice since it is hidden/optional
     let narratorVoiceShortName = '';
-
-    if (mainVoiceSelect && mainVoiceSelect.value) {
-        // Handle "Lang, ShortName" format if present
-        if (mainVoiceSelect.value.includes(',')) {
-            narratorVoiceShortName = mainVoiceSelect.value.split(',')[1].trim();
-        } else {
-            narratorVoiceShortName = mainVoiceSelect.value;
-        }
+    
+    if (availableVoices.length > 0) {
+         narratorVoiceShortName = getVoiceShortName(availableVoices[0]);
     }
 
-    // Fallback if main dropdown is empty or invalid
-    if (!narratorVoiceShortName && availableVoices.length > 0) {
-        narratorVoiceShortName = getVoiceShortName(availableVoices[0]);
+    if (!narratorVoiceShortName) {
+         console.error("Critical: Could not determine a default Narrator voice.");
+         alert("Error: Could not assign a default voice. Please check available voices.");
+         return false;
     }
 
     // Create a pool of ShortNames for rotation
-    // Ensure we only have valid strings using the helper
     const voiceShortNames = availableVoices.map(v => getVoiceShortName(v)).filter(n => n);
     
     if (voiceShortNames.length === 0) {
          console.error("Critical: Available voices have no ShortNames/Values.");
-         return;
+         return false;
     }
 
     // Assign Narrator first
@@ -193,6 +216,7 @@ function assignVoicesToCharacters(characters) {
     });
 
     console.log("Voices assigned:", Object.fromEntries(characterVoiceMap));
+    return true;
 }
 
 /**
@@ -289,6 +313,7 @@ function renderCharacterMappingUI(characters) {
     closeBtn.style.marginTop = "15px";
     closeBtn.addEventListener('click', () => {
         container.classList.add('hide');
+        document.getElementById('generate-button')?.classList.add('hide'); // Hide generate if closed
         isCharacterModeActive = false;
     });
     container.appendChild(closeBtn);

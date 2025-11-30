@@ -152,7 +152,7 @@ const translations = {
         promptRole: "You are a script pre-processor for an audiobook generator. I will provide you with a text. Your task is to prepare it for a multi-voice reading.",
         promptRulesTitle: "Rules:",
         promptRule1: "1. The \"Narrator\" is the default speaker. Do NOT mark sentences spoken by the Narrator.",
-        promptRule2: "2. For any sentence spoken by a specific character (dialogue), insert a marker at the very beginning of that sentence.",
+        promptRule2: "2. For any sentence spoken by a concise specific character (dialogue), insert a marker at the very beginning of that sentence.",
         promptRule3: "3. The marker MUST be in this format: `[Character Name]:`",
         promptRule4: "4. If a sentence contains both narration and dialogue (e.g., 'Max said, \"Hello.\"'), split it into two separate lines so the narration remains unmarked and the dialogue gets the marker.",
         promptRule5: "5. Do not change the text content other than splitting lines and adding markers.",
