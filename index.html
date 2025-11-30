@@ -137,8 +137,9 @@
     <div id="sl-container" class="language-row mb-2">
       <div class="language-and-voice-container">
         <label for="sl" id="sl-label" class="language-row-label"></label>
-        <label for="sl-voice" id="sl-voice-label" class="language-row-label"></label>
-        <select id="sl-voice" class="voice-select"></select>
+        <!-- Hiding Default Narrator Selection as per request -->
+        <label for="sl-voice" id="sl-voice-label" class="language-row-label hide"></label>
+        <select id="sl-voice" class="voice-select hide"></select>
       </div>
       <div class="voice-controls">
         <div class="slider-container rate-pitch-controls">
@@ -184,7 +185,8 @@
     <!-- Character Analysis & Generation -->
     <div id="action-buttons" class="mt-2 mb-3 d-flex gap-2 flex-wrap">
       <button id="analyze-characters-button" class="button-secondary">Analyze Characters</button>
-      <button id="generate-button" class="button-primary"></button>
+      <!-- Hidden by default until analysis is done -->
+      <button id="generate-button" class="button-primary hide"></button>
       <button id="reload-page-button" class="button-danger hide"></button>
     </div>
 
