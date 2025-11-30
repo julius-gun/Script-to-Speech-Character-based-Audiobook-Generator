@@ -32,8 +32,8 @@ You are a script pre-processor for an audiobook generator. I will provide you wi
 
 Rules:
 1. The "Narrator" is the default speaker. Do NOT mark sentences spoken by the Narrator.
-2. For any sentence spoken by a specific character (dialogue), insert a concise marker (one word) at the very beginning of that sentence
-3. The marker MUST be in this format: `[Character Name]:`
+2. For any sentence spoken by a specific character (dialogue), insert a concise marker at the very beginning of that sentence.
+3. The marker MUST be in this format: `[Character Name, gender]:` (e.g. `[Max, m]:` for male or `[Sarah, f]:` for female).
 4. If a sentence contains both narration and dialogue (e.g., 'Max said, "Hello."'), split it into two separate lines so the narration remains unmarked and the dialogue gets the marker.
 5. Do not change the text content other than splitting lines and adding markers.
 
@@ -42,12 +42,14 @@ Max looked at the horizon. "It's going to rain," he said. Hans shook his head an
 
 Example Output:
 Max looked at the horizon.
-[Max]: "It's going to rain,"
+[Max, m]: "It's going to rain,"
 he said.
 Hans shook his head and replied,
-[Hans]: "No, it's just mist."
+[Hans, m]: "No, it's just mist."
 
 [INSERT YOUR TEXT HERE]
+  
+Make sure that it is fail proof, as [ ] might be used in normal books also.
 ```
 
 ### 2. Configure the Tool

@@ -8,6 +8,7 @@
 // - filterVoices (voice-dropdown-menu.js)
 
 let characterVoiceMap = new Map(); // Stores Character Name -> Voice ShortName
+let characterGenderMap = new Map(); // Stores Character Name -> Gender (Male/Female)
 let parsedSentences = []; // Stores the processed text structure
 let uniqueCharactersList = []; // Stores list of unique characters found
 let isCharacterModeActive = false;
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
          isCharacterModeActive = false;
          parsedSentences = [];
          characterVoiceMap.clear();
+         characterGenderMap.clear();
          uniqueCharactersList = [];
     };
 
@@ -69,11 +71,13 @@ function handleAnalyzeCharacters() {
     }
 
     parsedSentences = [];
+    characterGenderMap.clear(); // Clear previous genders
     const uniqueCharacters = new Set();
     uniqueCharacters.add('Narrator'); // Always present
 
     // Robust Line-by-Line Parsing
     // Regex: Start of line, [Character Name]:, followed by text
+    // Modified to capture potential gender inside brackets: [Name, Gender]
     const markerRegex = /^\[(.*?)\]:\s*(.*)/;
     
     const lines = sourceText.split('\n');
@@ -86,11 +90,27 @@ function handleAnalyzeCharacters() {
         
         if (match) {
             // It's a character line
-            const charName = match[1].trim();
+            const bracketContent = match[1].trim(); // e.g., "Max" or "Max, m"
             const dialogue = match[2].trim();
+            
+            // Split by comma to find Name and optional Gender
+            const parts = bracketContent.split(',').map(p => p.trim());
+            const charName = parts[0];
             
             if (charName && dialogue) {
                 uniqueCharacters.add(charName);
+                
+                // Try to detect gender if present
+                if (parts.length > 1) {
+                    const rawGender = parts[1].toLowerCase();
+                    // Handle 'm'/'male' or 'f'/'female'
+                    if (rawGender === 'male' || rawGender === 'm') {
+                        characterGenderMap.set(charName, 'Male');
+                    } else if (rawGender === 'female' || rawGender === 'f') {
+                        characterGenderMap.set(charName, 'Female');
+                    }
+                }
+
                 parsedSentences.push({
                     character: charName,
                     text: dialogue
@@ -131,7 +151,7 @@ function handleAnalyzeCharacters() {
 }
 
 /**
- * Logic: Assigns a voice to each character automatically based on available voices.
+ * Logic: Assigns a voice to each character automatically based on available voices and detected gender.
  * Populates the characterVoiceMap.
  * @param {string[]} characters List of character names
  * @returns {boolean} True if assignment was successful
@@ -164,9 +184,7 @@ function assignVoicesToCharacters(characters) {
     }
 
     // Automatically select a Narrator Voice (Default to the first one available)
-    // No longer relying on #sl-voice since it is hidden/optional
     let narratorVoiceShortName = '';
-    
     if (availableVoices.length > 0) {
          narratorVoiceShortName = getVoiceShortName(availableVoices[0]);
     }
@@ -177,42 +195,64 @@ function assignVoicesToCharacters(characters) {
          return false;
     }
 
-    // Create a pool of ShortNames for rotation
-    const voiceShortNames = availableVoices.map(v => getVoiceShortName(v)).filter(n => n);
-    
-    if (voiceShortNames.length === 0) {
-         console.error("Critical: Available voices have no ShortNames/Values.");
-         return false;
-    }
-
     // Assign Narrator first
     characterVoiceMap.set('Narrator', narratorVoiceShortName);
 
-    // Assign other characters
-    // Try to start rotation from a different voice than the narrator if possible
-    let voiceIndex = 0;
-    if (voiceShortNames.length > 1) {
-        // If narrator uses index 0, start others at 1.
-        const narratorIndex = voiceShortNames.indexOf(narratorVoiceShortName);
-        if (narratorIndex !== -1) {
-            voiceIndex = (narratorIndex + 1) % voiceShortNames.length;
-        }
+    // --- Create a character pool EXCLUDING the Narrator voice ---
+    // This prevents the first character from immediately reusing the Narrator's voice
+    let characterPool = availableVoices;
+    if (availableVoices.length > 1) {
+        characterPool = availableVoices.filter(v => getVoiceShortName(v) !== narratorVoiceShortName);
     }
+
+    // Separate voices by gender from the (potentially reduced) pool
+    const maleVoices = characterPool.filter(v => v.gender === 'Male');
+    const femaleVoices = characterPool.filter(v => v.gender === 'Female');
+    
+    // Create a pool of ShortNames for rotation
+    const allVoiceShortNames = characterPool.map(v => getVoiceShortName(v)).filter(n => n);
+    const maleVoiceShortNames = maleVoices.map(v => getVoiceShortName(v)).filter(n => n);
+    const femaleVoiceShortNames = femaleVoices.map(v => getVoiceShortName(v)).filter(n => n);
+
+    if (allVoiceShortNames.length === 0) {
+         // Fallback to full list if filtering emptied it (unlikely with length > 1 check)
+         console.warn("Filtered pool empty, falling back to full voice list.");
+         characterPool = availableVoices;
+         // Re-map (reuse logic simplified by just proceeding with possibly narrator included if critical)
+    }
+
+    // Indices for rotation
+    let generalIndex = 0;
+    let maleIndex = 0;
+    let femaleIndex = 0;
 
     characters.forEach(charName => {
         if (charName === 'Narrator') return; // Already done
 
-        const assignedVoice = voiceShortNames[voiceIndex % voiceShortNames.length];
+        const gender = characterGenderMap.get(charName); // 'Male' or 'Female' or undefined
+        let assignedVoice = null;
+
+        // Attempt to assign based on gender
+        if (gender === 'Male' && maleVoiceShortNames.length > 0) {
+            assignedVoice = maleVoiceShortNames[maleIndex % maleVoiceShortNames.length];
+            maleIndex++;
+        } else if (gender === 'Female' && femaleVoiceShortNames.length > 0) {
+            assignedVoice = femaleVoiceShortNames[femaleIndex % femaleVoiceShortNames.length];
+            femaleIndex++;
+        } else {
+            // Fallback to general rotation if gender unknown or specific gender list empty
+            if (allVoiceShortNames.length > 0) {
+                assignedVoice = allVoiceShortNames[generalIndex % allVoiceShortNames.length];
+                generalIndex++;
+            }
+        }
         
-        // Safety check
+        // Safety check and final fallback to Narrator if absolutely nothing else
         if (assignedVoice) {
             characterVoiceMap.set(charName, assignedVoice);
         } else {
-            // Should not happen due to previous checks, but robust fallback
             characterVoiceMap.set(charName, narratorVoiceShortName);
         }
-        
-        voiceIndex++;
     });
 
     console.log("Voices assigned:", Object.fromEntries(characterVoiceMap));
@@ -253,10 +293,15 @@ function renderCharacterMappingUI(characters) {
     }
 
     characters.forEach((charName, index) => {
-        // Label
+        // Label with Gender indicator if known
+        const gender = characterGenderMap.get(charName);
+        const genderLabel = gender ? ` (${gender === 'Male' ? 'M' : 'F'})` : '';
+        
         const label = document.createElement('label');
-        label.textContent = charName;
+        label.textContent = charName + genderLabel;
         label.style.fontWeight = 'bold';
+        if (gender === 'Male') label.style.color = '#2196F3'; // Blue hint
+        if (gender === 'Female') label.style.color = '#E91E63'; // Pink hint
 
         // Select
         const select = document.createElement('select');
@@ -265,14 +310,24 @@ function renderCharacterMappingUI(characters) {
         select.style.width = '100%';
         select.className = 'voice-select';
 
+        // --- Filter voices for this specific character based on gender ---
+        let voicesForDropdown = availableVoices;
+        if (gender === 'Male') {
+            const filtered = availableVoices.filter(v => v.gender === 'Male');
+            if (filtered.length > 0) voicesForDropdown = filtered;
+        } else if (gender === 'Female') {
+            const filtered = availableVoices.filter(v => v.gender === 'Female');
+            if (filtered.length > 0) voicesForDropdown = filtered;
+        }
+
         // Populate Select
-        if (availableVoices.length === 0) {
+        if (voicesForDropdown.length === 0) {
             const opt = document.createElement('option');
             opt.text = fetchTranslation('voiceNoneAvailable', currentLanguage);
             select.add(opt);
             select.disabled = true;
         } else {
-            availableVoices.forEach(voice => {
+            voicesForDropdown.forEach(voice => {
                 const opt = document.createElement('option');
                 opt.value = getVoiceShortName(voice); // Use Extracted ShortName as value
                 
@@ -287,10 +342,25 @@ function renderCharacterMappingUI(characters) {
             // Set selected value from map
             const preAssignedVoice = characterVoiceMap.get(charName);
             if (preAssignedVoice) {
-                select.value = preAssignedVoice;
+                // Check if the pre-assigned voice exists in the filtered list
+                // If not (e.g. gender mismatch in logic vs view), we might need to add it or select index 0
+                const exists = Array.from(select.options).some(opt => opt.value === preAssignedVoice);
+                if (exists) {
+                    select.value = preAssignedVoice;
+                } else {
+                    // Pre-assigned voice not in filtered list? Select first available.
+                    if (select.options.length > 0) {
+                         select.selectedIndex = 0;
+                         // Update map to match reality
+                         characterVoiceMap.set(charName, select.value);
+                    }
+                }
             } else {
-                // If map missing value (shouldn't happen), pick first
-                 if (select.options.length > 0) select.selectedIndex = 0;
+                // If map missing value, pick first
+                 if (select.options.length > 0) {
+                     select.selectedIndex = 0;
+                     characterVoiceMap.set(charName, select.value);
+                 }
             }
         }
 
