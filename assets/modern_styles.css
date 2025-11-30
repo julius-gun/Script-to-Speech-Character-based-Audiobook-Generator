@@ -1,0 +1,846 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Define CSS Variables for Colors and Spacing */
+:root {
+    /* Color Palette */
+    --color-primary: #4A90E2; /* Professional Blue */
+    --color-primary-dark: #3A7BC8; /* Darker blue for hover/active */
+    --color-secondary: #F4F7F9; /* Light Neutral Gray */
+    --color-accent: #48D1CC; /* Teal */
+    --color-accent-dark: #3ABFB6; /* Darker teal for hover/active */
+    --color-text-primary: #333333; /* Dark Gray/Off-black */
+    --color-text-secondary: #666666; /* Medium Gray */
+    --color-border: #E0E0E0; /* Light Gray Border */
+    --color-background: #FFFFFF; /* White background */
+    --color-error: #E57373; /* Soft Red */
+    --color-error-dark: #d32f2f; /* Darker Red */
+    --color-success: #4CAF50; /* Green for success/progress */
+    --color-warning-bg: #FFF3E0; /* Light orange for warning bg */
+    --color-warning-border: #FFB74D; /* Orange for warning border */
+    --color-warning-text: #E65100; /* Dark orange for warning text */
+
+    /* Typography */
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --font-size-base: 16px; /* Base font size (adjust as needed) */
+    --font-size-sm: 0.875rem; /* 14px */
+    --font-size-lg: 1.125rem; /* 18px */
+    --line-height-base: 1.6;
+
+    /* Spacing (Based on 8px grid) */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+
+    /* Borders */
+    --border-radius-sm: 4px;
+    --border-radius-md: 6px;
+    --border-radius-lg: 8px;
+
+    /* Shadows (Subtle) */
+    --box-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Global Resets and Base Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: var(--font-size-base);
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
+    line-height: var(--line-height-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding: var(--space-lg); /* Add some padding around the body */
+    display: flex; /* Use flexbox for overall layout */
+    flex-direction: column; /* Stack header, main, status */
+    min-height: 100vh; /* Ensure body takes full viewport height */
+}
+
+/* Basic Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: var(--space-md);
+    font-weight: 600; /* Semi-bold */
+    line-height: 1.3;
+}
+
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.1rem; }
+
+p {
+    margin-bottom: var(--space-md);
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--color-primary-dark);
+    text-decoration: underline;
+}
+
+label {
+    display: block; /* Ensure labels take block space */
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-sm);
+    font-weight: 500; /* Medium weight for labels */
+}
+
+/* Basic Form Element Styling */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+    display: block;
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: var(--line-height-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
+    background-clip: padding-box;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+    outline: 0;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25); /* Subtle focus ring */
+}
+
+textarea {
+    resize: vertical;
+    min-height: 150px; /* Default min height */
+}
+
+select {
+    appearance: none; /* Remove default arrow */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23333333' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right var(--space-md) center;
+    background-size: 16px 12px;
+    padding-right: calc(var(--space-md) * 2.5); /* Make space for arrow */
+}
+
+/* Basic Button Styling */
+button,
+.button { /* Allow using .button class for styled links/divs */
+    display: inline-flex; /* Use inline-flex for icon alignment */
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm); /* Gap between icon and text */
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500; /* Medium weight */
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: var(--space-sm) var(--space-lg);
+    line-height: var(--line-height-base);
+    border-radius: var(--border-radius-md);
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Primary Button Style (e.g., Generate) */
+.button-primary,
+button[type="submit"], /* Style default submit buttons */
+#generate-button /* Specific ID for now */
+ {
+    color: #fff;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.button-primary:hover,
+button[type="submit"]:hover,
+#generate-button:hover {
+    color: #fff;
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+}
+
+/* Accent Button Style (e.g., Generate - alternative) */
+.button-accent {
+    color: #fff;
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.button-accent:hover {
+    color: #fff;
+    background-color: var(--color-accent-dark);
+    border-color: var(--color-accent-dark);
+}
+
+
+/* Secondary/Outline Button Style (e.g., Open Book View, Save) */
+.button-secondary {
+    color: var(--color-primary);
+    background-color: transparent;
+    border-color: var(--color-primary);
+}
+
+.button-secondary:hover {
+    color: #fff;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+/* Subtle Button Style (e.g., Settings, Add/Remove) */
+.button-subtle {
+    color: var(--color-text-secondary);
+    background-color: transparent;
+    border-color: transparent; /* No border */
+    padding: var(--space-xs) var(--space-sm); /* Smaller padding */
+    line-height: 1; /* Prevent extra height */
+}
+.button-subtle i { /* Style icon inside subtle button */
+    font-size: 1.1em; /* Slightly larger icon */
+    vertical-align: middle; /* Better alignment with text */
+}
+
+.button-subtle:hover {
+    color: var(--color-text-primary);
+    background-color: rgba(0, 0, 0, 0.05); /* Slight background on hover */
+}
+
+/* Danger Button Style (e.g., Delete/Remove) */
+.button-danger {
+    color: var(--color-error);
+    background-color: transparent;
+    border-color: transparent;
+}
+.button-danger.button-subtle { /* Specific for subtle danger buttons */
+     padding: var(--space-xs) var(--space-sm);
+     line-height: 1;
+}
+
+.button-danger:hover {
+    color: var(--color-error-dark);
+    background-color: rgba(229, 115, 115, 0.1); /* Light red background on hover */
+}
+/* Style for main Delete button */
+#reload-page-button {
+    color: #fff;
+    background-color: var(--color-error);
+    border-color: var(--color-error);
+}
+#reload-page-button:hover {
+    color: #fff;
+    background-color: var(--color-error-dark);
+    border-color: var(--color-error-dark);
+}
+
+
+/* Utility Classes */
+.hide {
+    display: none !important;
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: var(--color-text-secondary); }
+
+.mt-1 { margin-top: var(--space-sm); }
+.mt-2 { margin-top: var(--space-md); }
+.mt-3 { margin-top: var(--space-lg); }
+.mt-4 { margin-top: var(--space-xl); }
+
+.mb-1 { margin-bottom: var(--space-sm); }
+.mb-2 { margin-bottom: var(--space-md); }
+.mb-3 { margin-bottom: var(--space-lg); }
+.mb-4 { margin-bottom: var(--space-xl); }
+
+.d-flex { display: flex; }
+.align-items-center { align-items: center; }
+.justify-content-between { justify-content: space-between; }
+.gap-1 { gap: var(--space-sm); }
+.gap-2 { gap: var(--space-md); }
+.gap-3 { gap: var(--space-lg); }
+
+/* --- Component Styles --- */
+
+/* Header */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--space-md); /* Reduced padding */
+    margin-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+#page-title-h1 {
+    font-size: 1.5rem; /* Slightly smaller H1 for header */
+    font-weight: 600; /* Semi-bold */
+    margin-bottom: 0; /* Remove default margin */
+    color: var(--color-text-primary);
+}
+
+#header-controls {
+    /* Uses flex utilities already */
+}
+
+#language-selector-container label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: 0; /* Override default label margin */
+    cursor: default; /* Indicate it's not clickable */
+}
+
+#language-selector-container #ui-language-icon {
+    font-size: 1.1em; /* Adjust icon size */
+    color: var(--color-text-secondary);
+}
+
+/* Style the select dropdown added by JS */
+#ui-language-selector {
+    width: auto; /* Don't force full width */
+    min-width: 150px; /* Give it some minimum space */
+    padding: var(--space-xs) var(--space-sm); /* Smaller padding */
+    padding-right: calc(var(--space-sm) * 2.5); /* Space for arrow */
+    font-size: var(--font-size-sm);
+    background-position: right var(--space-sm) center; /* Adjust arrow position */
+    border-radius: var(--border-radius-sm); /* Smaller radius */
+    margin-left: var(--space-xs); /* Small space after label */
+}
+
+#info-button,
+#settings-button {
+    font-size: 1.2rem; /* Adjust icon size */
+    padding: var(--space-xs); /* Minimal padding around icon */
+    line-height: 1; /* Prevent extra height */
+    border-radius: var(--border-radius-sm); /* Match select */
+}
+
+#info-button:hover,
+#settings-button:hover {
+    background-color: rgba(0, 0, 0, 0.08); /* Slightly darker subtle hover */
+}
+
+/* Main Content Area */
+.main-content {
+    flex-grow: 1; /* Allow main content to take available space */
+}
+
+/* Language Row Headers (Optional, might remove later) */
+.language-row-headers {
+    display: none; /* Hide the old text headers for now */
+    /* If needed later, style with flex to align with columns below */
+}
+
+/* Language Rows */
+.language-row {
+    display: grid;
+    /* Define 3 columns: [Lang/Voice Controls] [Sliders] [Action Buttons] */
+    grid-template-columns: auto 300px auto;
+    align-items: start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background-color: var(--color-background);
+    box-shadow: var(--box-shadow-sm);
+}
+.language-row:not(:last-child) {
+    margin-bottom: var(--space-md); /* Space between rows */
+}
+
+/* NEW: Container for Language and Voice Dropdowns */
+.language-and-voice-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    min-width: 0; /* Allow shrinking */
+}
+
+/* General Label within a language row */
+.language-row-label {
+    flex-shrink: 0; /* Prevent labels from shrinking */
+    margin-bottom: 0; /* Override default label margin */
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap; /* Prevent labels from wrapping */
+}
+
+/* Selects within the new container (Language and Voice dropdowns) */
+.language-and-voice-container select {
+    width: 220px; /* Fixed width for alignment */
+    flex: none; /* Disable flex-grow/shrink behavior */
+}
+
+
+/* Voice Controls within Language Row */
+.voice-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding-top: var(--space-xs); /* Align top slightly */
+}
+
+/* Use Grid for perfect slider alignment */
+.slider-container {
+    display: grid;
+    /* Define 3 columns: [Label] [Slider] [Value] for perfect alignment */
+    grid-template-columns: 45px 1fr 55px;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-sm);
+}
+
+.slider-container label {
+    /* No flex properties needed */
+    text-align: right;
+    color: var(--color-text-secondary);
+    margin-bottom: 0;
+}
+
+.rate-slider,
+.pitch-slider,
+.max-threads,
+.mergefiles {
+    /* No flex properties needed */
+    width: 100%; /* Fill the available grid cell */
+    height: 8px; /* Slimmer slider */
+    cursor: pointer;
+    appearance: none;
+    background: #ddd;
+    border-radius: 4px;
+    outline: none;
+    margin: 0; /* Remove default margins */
+}
+
+/* Slider Thumb */
+.rate-slider::-webkit-slider-thumb,
+.pitch-slider::-webkit-slider-thumb,
+.max-threads::-webkit-slider-thumb,
+.mergefiles::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+}
+.rate-slider::-moz-range-thumb,
+.pitch-slider::-moz-range-thumb,
+.max-threads::-moz-range-thumb,
+.mergefiles::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+/* Container for the editable value display and input */
+.value-container {
+    position: relative;
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* The number input field hidden by default */
+.value-input {
+    width: 100%;
+    height: 24px; /* A fixed height for consistency */
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    text-align: right;
+    padding: 2px 4px;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--color-background);
+    box-sizing: border-box;
+    -moz-appearance: textfield; /* Hide arrows on Firefox */
+}
+
+/* Hide number input arrows on Chrome, Safari, Edge */
+.value-input::-webkit-outer-spin-button,
+.value-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Styles for the value text displays */
+.rate-value,
+.pitch-value {
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    user-select: none; /* Prevent text selection on click */
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: var(--border-radius-sm);
+    transition: background-color 0.15s ease-in-out;
+    width: 100%; /* Ensure it fills the container for consistent clicking */
+    text-align: right; /* Align text to the right */
+}
+
+.rate-value:hover,
+.pitch-value:hover {
+    background-color: rgba(0, 0, 0, 0.08); /* Subtle hover effect */
+}
+
+/* Keep styles for non-editable values separate for clarity */
+.threads-value,
+.merge-value {
+    text-align: right;
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+
+/* Hide rate/pitch controls by default */
+.rate-pitch-controls {
+    display: none;
+}
+/* Show when settings are visible */
+body.settings-visible .rate-pitch-controls {
+    display: grid; /* Use grid when visible */
+}
+
+/* Language Row Action Buttons */
+.language-row-actions {
+    display: flex;
+    align-items: center; /* Vertically align buttons */
+    gap: var(--space-xs);
+    padding-top: var(--space-xs); /* Align with selects */
+}
+
+/* Special handling for the source language row's action container to ensure vertical alignment */
+#sl-container .language-row-actions {
+    min-height: 38px; /* Match the height of a select box to keep rows aligned */
+}
+
+
+.add-lang-button,
+.remove-lang-button {
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+/* Advanced Settings */
+#advanced-audio-settings {
+    border: 1px solid var(--color-border);
+    padding: var(--space-md);
+    border-radius: var(--border-radius-md);
+    background-color: var(--color-secondary); /* Slightly different background */
+}
+#advanced-audio-settings h4 {
+    margin-bottom: var(--space-md);
+    color: var(--color-text-primary);
+    font-size: 1.1rem;
+}
+#advanced-audio-settings .slider-container label {
+    /* No flex-basis needed, grid handles it. We can adjust the grid template if needed. */
+}
+#advanced-audio-settings #insert-file-button {
+    /* Uses button-secondary style */
+}
+
+/* Source Text Area */
+#enter-source-text-label {
+    /* Standard h3 style */
+}
+#source-text {
+    /* Standard textarea style */
+}
+
+/* Action Buttons Container */
+#action-buttons {
+    /* Uses flex utilities */
+}
+
+/* Status Area */
+.status-area {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0; /* Prevent status area from shrinking */
+}
+
+/* Progress Bar */
+#progress-container {
+    background-color: var(--color-border);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    height: 24px; /* Match progress bar height */
+}
+
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--color-success);
+    text-align: center;
+    line-height: 24px;
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    border-radius: var(--border-radius-sm);
+    transition: width 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+#progress-info {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+#translation-finished-message {
+    font-weight: 500;
+    color: var(--color-success);
+}
+
+/* Status Text Area */
+#stat-area {
+    background-color: var(--color-secondary);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+    min-height: 100px;
+    max-height: 200px; /* Limit height */
+}
+
+/* Output Display Area */
+#output {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background-color: var(--color-secondary); /* Light background for output */
+}
+
+#output .paragraph {
+    display: flex;
+    gap: var(--space-md);
+    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.95rem; /* Slightly smaller text in output */
+    line-height: 1.5;
+}
+#output .paragraph:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+#output .source,
+#output .lang-column {
+    flex: 1; /* Distribute space equally */
+    min-width: 0; /* Allow columns to shrink */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+#output .rtl {
+    text-align: right;
+    direction: rtl;
+}
+
+/* Firefox Warning */
+#firefox-warning {
+    background-color: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    color: var(--color-warning-text);
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+}
+#firefox-warning strong {
+    font-weight: 600;
+}
+
+/* Info Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, visibility 0s linear 0s;
+}
+.modal-overlay.hide {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.modal-content {
+    background-color: var(--color-background);
+    padding: var(--space-lg) var(--space-xl);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-md);
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.modal-overlay:not(.hide) .modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-lg);
+}
+.modal-content p {
+    margin-bottom: var(--space-sm);
+}
+
+.modal-close-button {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-md);
+    font-size: 1.8rem;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--color-text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s ease;
+}
+.modal-close-button:hover {
+    color: var(--color-text-primary);
+}
+
+
+/* --- Media Queries (Basic Responsiveness) --- */
+
+@media (max-width: 992px) {
+    .language-row {
+        grid-template-columns: 1fr; /* Stack all columns */
+        gap: var(--space-md); /* Increase gap between stacked sections */
+    }
+
+    .language-and-voice-container {
+        /* Revert to flex for stacking */
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-sm);
+    }
+    
+    .language-and-voice-container .language-row-label:first-child {
+        width: auto; /* Reset fixed width */
+    }
+
+    .language-and-voice-container select {
+        width: 100%; /* Make selects full width */
+    }
+
+    .voice-controls {
+        width: 100%; /* Make slider section full width */
+    }
+}
+
+
+@media (max-width: 768px) {
+    body {
+        padding: var(--space-md); /* Reduce body padding */
+    }
+
+    .app-header {
+        flex-direction: column; /* Stack title and controls */
+        align-items: flex-start; /* Align items left */
+        gap: var(--space-md);
+    }
+    #header-controls {
+        width: 100%; /* Make controls take full width */
+        justify-content: space-between; /* Space out lang selector and settings */
+    }
+
+    .language-row {
+        /* Already stacked from 992px query */
+        padding: var(--space-md);
+    }
+
+    .language-row-label {
+        /* No change needed, already handled */
+    }
+
+    .language-row-actions {
+        justify-content: flex-end; /* Align buttons right */
+        padding-top: var(--space-sm);
+        width: 100%;
+    }
+
+    #output .paragraph {
+        flex-direction: column; /* Stack columns vertically */
+        gap: var(--space-sm);
+    }
+}
+
+@media (max-width: 576px) {
+    html {
+        font-size: 15px; /* Slightly smaller base font */
+    }
+    h1 { font-size: 1.6rem; }
+    h3 { font-size: 1.15rem; }
+
+    button, .button {
+        padding: var(--space-sm) var(--space-md); /* Adjust padding */
+        font-size: 0.95rem;
+    }
+    #action-buttons {
+        flex-direction: column; /* Stack action buttons */
+        align-items: stretch; /* Make buttons full width */
+    }
+}

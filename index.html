@@ -1,0 +1,220 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+  <title id="page-title">Script-to-Speech Character based Audiobook Generator</title>
+  <link rel="stylesheet" href="assets/modern_styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"
+    integrity="sha512-GWzVrcGlo0TxTRvz9ttioyYJ+Wwk9Ck0G81D+eO63BaqHaJ3YZX9wuqjwgfcV/MrB2PhaVX9DkYVhbFpStnqpQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-HP6ZDS0E04');
+  </script>
+
+  <script src="assets/lib/jszip.min.js"></script>
+  <script src="assets/lib/FileSaver.min.js"></script>
+  <script>window.JSZip || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"><\/script>')</script>
+  <script>window.saveAs || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"><\/script>')</script>
+
+  <script src="assets/config.js" defer></script>
+  <script src="assets/static/language_data.js" defer></script>
+  <script src="assets/ui_translations.js" defer></script>
+  <script src="assets/static/voices-data.js" defer></script>
+  <script src="assets/translation_utils.js" defer></script>
+  <script src="assets/translation_api.js" defer></script>
+  <script src="assets/epub_generator.js" defer></script>
+  <script src="assets/texts_converter.js" defer></script>
+  <script src="assets/ui_helpers.js" defer></script>
+  <script src="assets/settings.js" defer></script>
+  <script src="assets/help_system.js" defer></script>
+  <script src="assets/progress_bar.js" defer></script>
+  <script src="assets/language_dropdown.js" defer></script>
+  <script src="assets/ui.js" defer></script>
+  <script src="assets/voice-dropdown-menu.js" defer></script>
+  <script src="assets/processing_file.js" defer></script>
+  <script src="assets/socket_edge_tts.js" defer></script>
+  <script src="assets/audio_helpers.js" defer></script>
+  <script src="assets/audio_pipeline.js" defer></script>
+  <script src="assets/audio_single_language.js" defer></script>
+  <script src="assets/audio_character_based.js" defer></script>
+  <script src="assets/app_logic.js" defer></script>
+  <script src="assets/info_modal.js" defer></script>
+  <script src="assets/event_listeners.js" defer></script>
+  <script src="assets/initialization.js" defer></script>
+  <script src="assets/main.js" defer></script>
+
+  <style>
+    /* Specific styles for the prompt section */
+    .prompt-box {
+        background-color: #f4f7f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        font-family: monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        margin-bottom: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .prompt-section details {
+        margin-bottom: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 10px;
+    }
+    .prompt-section summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #4A90E2;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="firefox-warning" class="hide">
+    <strong id="firefox-warning-title"></strong>
+    <span id="firefox-warning-body"></span>
+  </div>
+
+  <header class="app-header">
+    <h1 id="page-title-h1"></h1>
+    <div id="header-controls" class="d-flex align-items-center gap-2">
+      <div id="language-selector-container" class="d-flex align-items-center gap-1">
+        <a href="https://github.com/" target="_blank" rel="noopener noreferrer" id="github-link" style="text-decoration: none; color: inherit; margin-right: 10px;">
+          <i class="fa-brands fa-github" style="font-size: 1.8rem; vertical-align: middle;"></i>
+        </a>
+        <label id="ui-language-label" for="ui-language-selector" class="mb-0 d-flex align-items-center gap-1">
+          <i id="ui-language-icon" class="fas fa-globe"></i>
+          <span id="ui-language-text"></span>
+        </label>
+      </div>
+      <button class="button-subtle" id="info-button" title=""><i class="fas fa-info-circle"></i></button>
+      <button class="button-subtle" id="settings-button" title=""><i class="fas fa-cog"></i></button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    
+    <!-- LLM Prompt Instructions Section -->
+    <section class="prompt-section">
+        <details open>
+            <summary id="prompt-section-title">Instructions for LLM Pre-processing</summary>
+            <div class="mt-2">
+                <p id="prompt-intro"></p>
+                <div class="prompt-box">
+<span id="prompt-role"></span>
+
+<strong id="prompt-rules-title"></strong>
+<span id="prompt-rule-1"></span>
+<span id="prompt-rule-2"></span>
+<span id="prompt-rule-3"></span>
+<span id="prompt-rule-4"></span>
+<span id="prompt-rule-5"></span>
+
+<strong id="prompt-ex-in-title"></strong>
+<span id="prompt-ex-in"></span>
+
+<strong id="prompt-ex-out-title"></strong>
+<span id="prompt-ex-out"></span>
+
+<span id="prompt-insert-text"></span>
+  
+<span id="prompt-fail-proof"></span>
+                </div>
+            </div>
+        </details>
+    </section>
+
+    <!-- Language & Narrator Settings -->
+    <div id="sl-container" class="language-row mb-2">
+      <div class="language-and-voice-container">
+        <label for="sl" id="sl-label" class="language-row-label"></label>
+        <label for="sl-voice" id="sl-voice-label" class="language-row-label"></label>
+        <select id="sl-voice" class="voice-select"></select>
+      </div>
+      <div class="voice-controls">
+        <div class="slider-container rate-pitch-controls">
+          <label for="sl-rate" id="sl-rate-label"></label>
+          <input type="range" id="sl-rate" class="rate-slider" min="-100" max="100" value="0">
+          <div class="value-container">
+            <span class="rate-value value-display">+0%</span>
+            <input type="number" class="value-input hide" min="-100" max="100" value="0">
+          </div>
+        </div>
+        <div class="slider-container rate-pitch-controls">
+          <label for="sl-pitch" id="sl-pitch-label"></label>
+          <input type="range" id="sl-pitch" class="pitch-slider" min="-50" max="50" value="0">
+          <div class="value-container">
+            <span class="pitch-value value-display">+0Hz</span>
+            <input type="number" class="value-input hide" min="-50" max="50" value="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Audio Settings -->
+    <div id="advanced-audio-settings" class="hide mb-3 mt-3">
+      <h4 id="advanced-audio-settings-title" class="mb-2"></h4>
+      <div class="slider-container mb-1" id="div-threads">
+        <label for="max-threads" id="threads-label" style="flex-basis: 80px;"></label>
+        <input type="range" id="max-threads" class="max-threads" min="1" max="100" value="100" step="1" style="flex-grow: 1;">
+        <span class="threads-value" id="max-threads-int" style="min-width: 30px; text-align: right;">10</span>
+      </div>
+      <div class="slider-container mb-2" id="div-mergefiles">
+        <label for="mergefiles" id="merge-by-label" style="flex-basis: 80px;"></label>
+        <input type="range" id="mergefiles" class="mergefiles" min="1" max="100" value="100" step="1" style="flex-grow: 1;">
+        <span class="merge-value" id="mergefiles-str" style="min-width: 50px; text-align: right;">ALL</span>
+      </div>
+      <button id="insert-file-button" class="button-secondary mt-2"></button>
+    </div>
+
+    <!-- Source Text Input Area -->
+    <h3 id="enter-source-text-label" class="mt-3"></h3>
+    <textarea id="source-text" placeholder="" class="mb-2"></textarea>
+    <input type="file" id="file-input" accept=".txt, .fb2, .epub, .ini, .zip" multiple style="display: none;">
+
+    <!-- Character Analysis & Generation -->
+    <div id="action-buttons" class="mt-2 mb-3 d-flex gap-2 flex-wrap">
+      <button id="analyze-characters-button" class="button-secondary">Analyze Characters</button>
+      <button id="generate-button" class="button-primary"></button>
+      <button id="reload-page-button" class="button-danger hide"></button>
+    </div>
+
+    <!-- Character Mapping Area (Injected here) -->
+    <div id="character-settings-area" class="hide mb-3"></div>
+
+  </main>
+
+  <section class="status-area">
+    <h4 id="progress-title" class="hide mb-1"></h4>
+    <div id="progress-container" class="hide mb-1">
+      <div id="progress-bar">0%</div>
+    </div>
+    <div id="progress-info" class="hide mb-2 text-muted"></div>
+    <div id="translation-finished-message" class="hide mb-2"></div>
+    <textarea readonly class="text hide mb-3" id="stat-area" placeholder=""></textarea>
+    <div id="output"></div>
+  </section>
+
+  <div id="info-modal" class="modal-overlay hide">
+    <div class="modal-content">
+      <button id="info-modal-close" class="modal-close-button">&times;</button>
+      <h2 id="info-modal-title"></h2>
+      <p id="info-modal-text1"></p>
+      <p id="info-modal-text2"></p>
+      <p id="info-modal-link-paragraph">
+        <a href="https://tts.travisvn.com/" target="_blank" rel="noopener noreferrer" id="info-modal-link"></a>
+      </p>
+    </div>
+  </div>
+
+</body>
+</html>
