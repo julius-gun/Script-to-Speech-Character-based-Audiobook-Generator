@@ -23,6 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+ * Helper: Extracts the short name (e.g., "GuyNeural") from a voice object.
+ * Handles cases where .ShortName exists or where it needs to be parsed from .value ("en-US, GuyNeural").
+ */
+function getVoiceShortName(voice) {
+    if (!voice) return null;
+    if (voice.ShortName) return voice.ShortName;
+    if (voice.value && voice.value.includes(',')) {
+        return voice.value.split(',')[1].trim();
+    }
+    return voice.value; // Fallback
+}
+
+/**
  * Parses the source text, identifies characters, assigns default voices, and sets up the UI.
  */
 function handleAnalyzeCharacters() {
@@ -110,10 +123,15 @@ function assignVoicesToCharacters(characters) {
         console.warn("voicesData or filterVoices not available. Using empty list.");
     }
 
+    // Fallback: If no voices found for specific language (e.g. en-AU), use ALL voices
+    if (availableVoices.length === 0 && typeof voicesData !== 'undefined') {
+        console.warn(`No specific voices found for ${langCode}. Using all available voices as fallback.`);
+        availableVoices = voicesData;
+    }
+
     if (availableVoices.length === 0) {
-        console.warn("No voices available for language " + langCode);
-        // We cannot assign valid voices, map will be empty or invalid.
-        // Alerting here might be too aggressive if called automatically, but let's log.
+        console.error("Critical: No voices available at all.");
+        alert("Error: No voices loaded. Please check your internet connection or reload the page.");
         return;
     }
 
@@ -132,12 +150,18 @@ function assignVoicesToCharacters(characters) {
 
     // Fallback if main dropdown is empty or invalid
     if (!narratorVoiceShortName && availableVoices.length > 0) {
-        narratorVoiceShortName = availableVoices[0].ShortName;
+        narratorVoiceShortName = getVoiceShortName(availableVoices[0]);
     }
 
     // Create a pool of ShortNames for rotation
-    const voiceShortNames = availableVoices.map(v => v.ShortName);
+    // Ensure we only have valid strings using the helper
+    const voiceShortNames = availableVoices.map(v => getVoiceShortName(v)).filter(n => n);
     
+    if (voiceShortNames.length === 0) {
+         console.error("Critical: Available voices have no ShortNames/Values.");
+         return;
+    }
+
     // Assign Narrator first
     characterVoiceMap.set('Narrator', narratorVoiceShortName);
 
@@ -146,7 +170,6 @@ function assignVoicesToCharacters(characters) {
     let voiceIndex = 0;
     if (voiceShortNames.length > 1) {
         // If narrator uses index 0, start others at 1.
-        // Generally, just try to pick the next one in the list.
         const narratorIndex = voiceShortNames.indexOf(narratorVoiceShortName);
         if (narratorIndex !== -1) {
             voiceIndex = (narratorIndex + 1) % voiceShortNames.length;
@@ -157,7 +180,15 @@ function assignVoicesToCharacters(characters) {
         if (charName === 'Narrator') return; // Already done
 
         const assignedVoice = voiceShortNames[voiceIndex % voiceShortNames.length];
-        characterVoiceMap.set(charName, assignedVoice);
+        
+        // Safety check
+        if (assignedVoice) {
+            characterVoiceMap.set(charName, assignedVoice);
+        } else {
+            // Should not happen due to previous checks, but robust fallback
+            characterVoiceMap.set(charName, narratorVoiceShortName);
+        }
+        
         voiceIndex++;
     });
 
@@ -191,6 +222,11 @@ function renderCharacterMappingUI(characters) {
     if (typeof filterVoices === 'function' && typeof voicesData !== 'undefined') {
         availableVoices = filterVoices(voicesData, langCode);
     }
+    
+    // Fallback in UI as well
+    if (availableVoices.length === 0 && typeof voicesData !== 'undefined') {
+        availableVoices = voicesData;
+    }
 
     characters.forEach((charName, index) => {
         // Label
@@ -214,12 +250,12 @@ function renderCharacterMappingUI(characters) {
         } else {
             availableVoices.forEach(voice => {
                 const opt = document.createElement('option');
-                opt.value = voice.ShortName; // Use ShortName as value
+                opt.value = getVoiceShortName(voice); // Use Extracted ShortName as value
                 
                 if (typeof formatVoiceOption === 'function') {
                     opt.text = formatVoiceOption(voice);
                 } else {
-                    opt.text = `${voice.LocalName} (${voice.Gender})`;
+                    opt.text = voice.value; // Fallback
                 }
                 select.add(opt);
             });
@@ -228,6 +264,9 @@ function renderCharacterMappingUI(characters) {
             const preAssignedVoice = characterVoiceMap.get(charName);
             if (preAssignedVoice) {
                 select.value = preAssignedVoice;
+            } else {
+                // If map missing value (shouldn't happen), pick first
+                 if (select.options.length > 0) select.selectedIndex = 0;
             }
         }
 
@@ -286,23 +325,30 @@ async function generateCharacterAudiobook() {
     // Helper to resolve full voice object from ShortName
     const getFullVoiceValue = (shortName) => {
         if (typeof voicesData !== 'undefined') {
-            const voiceObj = voicesData.find(v => v.ShortName === shortName);
-            return voiceObj ? voiceObj.value : shortName; // Return full "Lang, Name" or fallback to ShortName
+            // Find match by extracting short name from data items
+            const voiceObj = voicesData.find(v => getVoiceShortName(v) === shortName);
+            return voiceObj ? voiceObj.value : shortName; // Return full "Lang, Name" or fallback
         }
         return shortName;
     };
+    
+    // Get Narrator fallback
+    let defaultNarratorVoice = characterVoiceMap.get('Narrator');
+    if (!defaultNarratorVoice && typeof voicesData !== 'undefined' && voicesData.length > 0) {
+        defaultNarratorVoice = getVoiceShortName(voicesData[0]); // Absolute fallback
+    }
 
     for (const item of parsedSentences) {
         let voiceShortName = characterVoiceMap.get(item.character);
         
         // If still no voice, this is a critical error
-        if (!voiceShortName) {
-            console.error(`No voice found in map for character: ${item.character}`);
+        if (!voiceShortName || voiceShortName === 'undefined') {
+            console.warn(`No voice found in map for character: ${item.character}. Using Narrator fallback.`);
             // Attempt fallback to Narrator's voice specifically
-            voiceShortName = characterVoiceMap.get('Narrator');
+            voiceShortName = defaultNarratorVoice;
         }
 
-        if (!voiceShortName) {
+        if (!voiceShortName || voiceShortName === 'undefined') {
             console.error(`Critically failed to find any voice for ${item.character}`);
             missingVoices = true;
             break; 
@@ -347,11 +393,11 @@ async function generateCharacterAudiobook() {
     if (typeof currentMergeSettings !== 'undefined') currentMergeSettings = mergeSettings;
 
     // Use Narrator voice for general settings context if needed
-    let defaultNarratorVoice = getFullVoiceValue(characterVoiceMap.get('Narrator'));
+    let fullDefaultNarratorVoice = getFullVoiceValue(defaultNarratorVoice);
 
     const pipelineConfig = {
         tasks: tasks,
-        audioSettings: { voice: defaultNarratorVoice }, 
+        audioSettings: { voice: fullDefaultNarratorVoice }, 
         concurrencyLimit: maxThreads,
         baseFilename: "CharacterAudiobook",
         mergeSettings: mergeSettings,

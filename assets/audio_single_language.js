@@ -321,7 +321,8 @@ async function handlePipelineComplete(completionData) {
         }
 
         // Store original text of failed tasks for retry
-        failedSingleLanguageTasks = currentRunFailures.map(instance => instance.originalTask);
+        // Fix: Ensure we check for null/undefined before accessing originalTask
+        failedSingleLanguageTasks = currentRunFailures.map(instance => instance ? instance.originalTask : null).filter(t => t);
 
         if (failedSingleLanguageTasks.length > 0) {
             createAndShowPostFailureButtons('single-language');

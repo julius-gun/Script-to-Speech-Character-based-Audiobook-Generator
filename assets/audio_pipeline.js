@@ -183,6 +183,16 @@ class AudioPipelineManager {
              console.error(`Pipeline: Task ${index + 1} has INVALID voice: ${taskVoice}. Skipping.`);
              this._updateTaskStatus(index, "Error: Invalid Voice");
              
+             // --- CRITICAL FIX: Create a dummy failure instance ---
+             // This prevents 'handlePipelineComplete' from crashing when accessing originalTask of a null instance
+             const dummyInstance = {
+                originalTask: taskData,
+                mp3_saved: false,
+                isPlaceholder: true,
+                clear: () => {} // Dummy cleanup
+             };
+             this.taskInstances[index] = dummyInstance;
+
              // Mark as failed immediately
              this.nextTaskIndex++; // Move past this task
              // Don't increment activeTaskCount since we aren't starting an async task
@@ -244,8 +254,18 @@ class AudioPipelineManager {
 
         } catch (error) {
             console.error(`Pipeline: Error creating/running task ${index + 1}:`, error);
+            
+            // CRITICAL FIX: Create dummy failure instance for immediate crashes
+            const dummyInstance = {
+                originalTask: taskData,
+                mp3_saved: false,
+                isPlaceholder: true,
+                clear: () => {}
+            };
+            this.taskInstances[index] = dummyInstance;
+            
             // Simulate immediate failure for this task
-            this._handleTaskCompletion(index, true, null); // Pass null as instance might not exist
+            this._handleTaskCompletion(index, true, dummyInstance);
         }
 
         // Try to queue another task immediately if slots are available
